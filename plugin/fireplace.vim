@@ -809,7 +809,7 @@ let g:fireplace#reader =
       \    ' :else        (pr-str (str x)))) %s))'
 
 function! fireplace#evalparse(expr, ...) abort
-  let options = extend({'session': 0}, a:0 ? a:1 : {})
+  let options = extend({'session': 0, 'ns': 'user'}, a:0 ? a:1 : {})
   let response = s:eval(printf(g:fireplace#reader, a:expr), options)
   call s:output_response(response)
 
@@ -1515,7 +1515,7 @@ function! fireplace#capture_test_run(expr, ...) abort
         \ . '   (println (str e))'
         \ . '   (println (clojure.string/join "\n" (.getStackTrace e)))))'
   let qflist = []
-  let response = s:eval(expr, {'session': 0})
+  let response = s:eval(expr, {'session': 0, 'ns': 'user'})
   if !has_key(response, 'out')
     call setqflist(fireplace#quickfix_for(get(response, 'stacktrace', [])))
     return s:output_response(response)
@@ -1560,7 +1560,7 @@ function! s:RunTests(bang, ...) abort
   endif
   let reqs = map(copy(a:000), '"''".v:val')
   let pre = '(clojure.core/require '.join(empty(a:000) ? ["'".fireplace#ns()] : reqs, ' ').' :reload) '
-  let expr = join(['(clojure.test/run-tests'] + reqs, ' ').')'
+  let expr = join(["(clojure.test/run-tests"] + ["'".fireplace#ns()] + [' '] + reqs, ' ').')'
   call fireplace#capture_test_run(expr, pre)
   echo expr
 endfunction
